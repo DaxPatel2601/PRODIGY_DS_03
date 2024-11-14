@@ -1,0 +1,57 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+#Step 1: Load the dataset
+data = pd.read_csv(r'bank.csv', sep=';')
+
+#Display first few rows to understand the structure
+print(data.head())
+print(data.info())
+
+data['y'] = data['y'].map({'yes': 1, 'no': 0})
+
+#Check for missing values
+print("Missing values:", data.isnull().sum().sum())
+
+#Encode categorical variables
+data = pd.get_dummies(data, drop_first=True)
+
+#Split the data into features and target
+X = data.drop('y', axis=1)
+y = data['y']
+
+#Split the dataset into training and testing sets 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#Initialize the Decision Tree Classifier
+clf = DecisionTreeClassifier(random_state=42, max_depth=3) 
+
+#Train the model
+clf.fit(X_train, y_train)
+
+#Make predictions
+y_pred = clf.predict(X_test)
+
+#Evaluate the model
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:\n", classification_report(y_test, y_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+#Visualize the Decision Tree
+plt.figure(figsize=(12,11))
+plot_tree(clf, feature_names=X.columns, class_names=['No', 'Yes'], filled=True, rounded=True)
+plt.show()
+
+#Additional Insights (Optional)
+feature_importances = pd.DataFrame({'Feature': X.columns, 'Importance': clf.feature_importances_})
+feature_importances = feature_importances.sort_values(by='Importance', ascending=False)
+
+plt.figure(figsize=(8, 10))
+sns.barplot(x='Importance', y='Feature', data=feature_importances)
+plt.title('Feature Importance in Decision Tree')
+plt.show()
